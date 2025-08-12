@@ -1,9 +1,9 @@
 # boost library for Arduino
 
 ## What's this?
-
-* Imported boost library at version 1.66.0
-  * http://www.boost.org/users/history/version_1_66_0.html
+Forked repository from: https://github.com/kekyo/BoostForArduino. All credit should got to Kekyo for assembling the ProxyHeaderBuilder, I just ran in on the new boost library version.
+* Imported boost library at version 1.88.0
+  * https://www.boost.org/releases/1.88.0/
 * Unchanged from all original files.
 * Prebuild libraries not included. (Yes, lack some codes, ex: boost.asio)
 
