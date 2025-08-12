@@ -45,7 +45,7 @@ struct disable_if_smartref_to
 
 //This function object takes a KeyCompare function object
 //and compares values that contains keys using KeyOfValue
-template< class ValuePtr, class KeyCompare, class KeyOfValue
+template< class ValuePtr, class KeyCompare, class KeyOfValue, class Ret = bool
         , bool = boost::intrusive::detail::is_same
    <typename boost::movelib::pointer_element<ValuePtr>::type, typename KeyOfValue::type>::value >
 struct tree_value_compare
@@ -59,62 +59,73 @@ struct tree_value_compare
 
    typedef boost::intrusive::detail::ebo_functor_holder<KeyCompare> base_t;
 
-   BOOST_INTRUSIVE_FORCEINLINE tree_value_compare()
+   inline tree_value_compare()
       :  base_t()
    {}
 
-   BOOST_INTRUSIVE_FORCEINLINE explicit tree_value_compare(const key_compare &kcomp)
+   inline explicit tree_value_compare(const key_compare &kcomp)
       :  base_t(kcomp)
    {}
 
-   BOOST_INTRUSIVE_FORCEINLINE tree_value_compare (const tree_value_compare &x)
+   inline tree_value_compare (const tree_value_compare &x)
       :  base_t(x.base_t::get())
    {}
 
-   BOOST_INTRUSIVE_FORCEINLINE tree_value_compare &operator=(const tree_value_compare &x)
+   inline tree_value_compare &operator=(const tree_value_compare &x)
    {  this->base_t::get() = x.base_t::get();   return *this;  }
 
-   BOOST_INTRUSIVE_FORCEINLINE tree_value_compare &operator=(const key_compare &x)
+   inline tree_value_compare &operator=(const key_compare &x)
    {  this->base_t::get() = x;   return *this;  }
 
-   BOOST_INTRUSIVE_FORCEINLINE const key_compare &key_comp() const
+   inline const key_compare &key_comp() const
    {  return static_cast<const key_compare &>(*this);  }
 
-   BOOST_INTRUSIVE_FORCEINLINE bool operator()(const key_type &key1, const key_type &key2) const
+   inline Ret operator()(const key_type &key) const
+   {  return this->key_comp()(key);   }
+
+   inline Ret operator()(const value_type &value) const
+   {  return this->key_comp()(KeyOfValue()(value));  }
+
+   template<class U>
+   inline Ret operator()( const U &nonkey
+                                             , typename disable_if_smartref_to<U, ValuePtr>::type* = 0) const
+   {  return this->key_comp()(nonkey);  }
+
+   inline Ret operator()(const key_type &key1, const key_type &key2) const
    {  return this->key_comp()(key1, key2);  }
 
-   BOOST_INTRUSIVE_FORCEINLINE bool operator()(const value_type &value1, const value_type &value2) const
+   inline Ret operator()(const value_type &value1, const value_type &value2) const
    {  return this->key_comp()(KeyOfValue()(value1), KeyOfValue()(value2));  }
 
-   BOOST_INTRUSIVE_FORCEINLINE bool operator()(const key_type &key1, const value_type &value2) const
+   inline Ret operator()(const key_type &key1, const value_type &value2) const
    {  return this->key_comp()(key1, KeyOfValue()(value2));  }
 
-   BOOST_INTRUSIVE_FORCEINLINE bool operator()(const value_type &value1, const key_type &key2) const
+   inline Ret operator()(const value_type &value1, const key_type &key2) const
    {  return this->key_comp()(KeyOfValue()(value1), key2);  }
 
    template<class U>
-   BOOST_INTRUSIVE_FORCEINLINE bool operator()( const key_type &key1, const U &nonkey2
+   inline Ret operator()( const key_type &key1, const U &nonkey2
                                               , typename disable_if_smartref_to<U, ValuePtr>::type* = 0) const
    {  return this->key_comp()(key1, nonkey2);  }
 
    template<class U>
-   BOOST_INTRUSIVE_FORCEINLINE bool operator()( const U &nonkey1, const key_type &key2
+   inline Ret operator()( const U &nonkey1, const key_type &key2
                                               , typename disable_if_smartref_to<U, ValuePtr>::type* = 0) const
    {  return this->key_comp()(nonkey1, key2);  }
 
    template<class U>
-   BOOST_INTRUSIVE_FORCEINLINE bool operator()( const value_type &value1, const U &nonvalue2
+   inline Ret operator()( const value_type &value1, const U &nonvalue2
                                               , typename disable_if_smartref_to<U, ValuePtr>::type* = 0) const
    {  return this->key_comp()(KeyOfValue()(value1), nonvalue2);  }
 
    template<class U>
-   BOOST_INTRUSIVE_FORCEINLINE bool operator()( const U &nonvalue1, const value_type &value2
+   inline Ret operator()( const U &nonvalue1, const value_type &value2
                                               , typename disable_if_smartref_to<U, ValuePtr>::type* = 0) const
    {  return this->key_comp()(nonvalue1, KeyOfValue()(value2));  }
 };
 
-template<class ValuePtr, class KeyCompare, class KeyOfValue>
-struct tree_value_compare<ValuePtr, KeyCompare, KeyOfValue, true>
+template<class ValuePtr, class KeyCompare, class KeyOfValue, class Ret>
+struct tree_value_compare<ValuePtr, KeyCompare, KeyOfValue, Ret, true>
    :  public boost::intrusive::detail::ebo_functor_holder<KeyCompare>
 {
    typedef typename
@@ -126,37 +137,45 @@ struct tree_value_compare<ValuePtr, KeyCompare, KeyOfValue, true>
    typedef boost::intrusive::detail::ebo_functor_holder<KeyCompare> base_t;
 
 
-   BOOST_INTRUSIVE_FORCEINLINE tree_value_compare()
+   inline tree_value_compare()
       :  base_t()
    {}
 
-   BOOST_INTRUSIVE_FORCEINLINE explicit tree_value_compare(const key_compare &kcomp)
+   inline explicit tree_value_compare(const key_compare &kcomp)
       :  base_t(kcomp)
    {}
 
-   BOOST_INTRUSIVE_FORCEINLINE tree_value_compare (const tree_value_compare &x)
+   inline tree_value_compare (const tree_value_compare &x)
       :  base_t(x.base_t::get())
    {}
 
-   BOOST_INTRUSIVE_FORCEINLINE tree_value_compare &operator=(const tree_value_compare &x)
+   inline tree_value_compare &operator=(const tree_value_compare &x)
    {  this->base_t::get() = x.base_t::get();   return *this;  }
 
-   BOOST_INTRUSIVE_FORCEINLINE tree_value_compare &operator=(const key_compare &x)
+   inline tree_value_compare &operator=(const key_compare &x)
    {  this->base_t::get() = x;   return *this;  }
 
-   BOOST_INTRUSIVE_FORCEINLINE const key_compare &key_comp() const
+   inline const key_compare &key_comp() const
    {  return static_cast<const key_compare &>(*this);  }
 
-   BOOST_INTRUSIVE_FORCEINLINE bool operator()(const key_type &key1, const key_type &key2) const
+   inline Ret operator()(const key_type &key) const
+   {  return this->key_comp()(key);   }
+
+   template<class U>
+   inline Ret operator()( const U &nonkey
+                                             , typename disable_if_smartref_to<U, ValuePtr>::type* = 0) const
+   {  return this->key_comp()(nonkey);  }
+
+   inline Ret operator()(const key_type &key1, const key_type &key2) const
    {  return this->key_comp()(key1, key2);  }
 
    template<class U>
-   BOOST_INTRUSIVE_FORCEINLINE bool operator()( const key_type &key1, const U &nonkey2
+   inline Ret operator()( const key_type &key1, const U &nonkey2
                                               , typename disable_if_smartref_to<U, ValuePtr>::type* = 0) const
    {  return this->key_comp()(key1, nonkey2);  }
 
    template<class U>
-   BOOST_INTRUSIVE_FORCEINLINE bool operator()(const U &nonkey1, const key_type &key2
+   inline Ret operator()(const U &nonkey1, const key_type &key2
                                               , typename disable_if_smartref_to<U, ValuePtr>::type* = 0) const
    {  return this->key_comp()(nonkey1, key2);  }
 };

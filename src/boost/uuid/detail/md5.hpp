@@ -1,3 +1,6 @@
+#ifndef BOOST_UUID_DETAIL_MD5_HPP_INCLUDED
+#define BOOST_UUID_DETAIL_MD5_HPP_INCLUDED
+
 /*
  * This RFC 1321 compatible MD5 implementation originated at:
  * http://openwall.info/wiki/people/solar/software/public-domain-source-code/md5
@@ -21,14 +24,9 @@
 
 // Distributed under the Boost Software License, Version 1.0. (See
 // accompanying file LICENSE_1_0.txt or copy at
-// http://www.boost.org/LICENSE_1_0.txt)
+// https://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef BOOST_UUID_MD5_HPP
-#define BOOST_UUID_MD5_HPP
-
-#include <boost/cast.hpp>
-#include <boost/config.hpp>
-#include <boost/cstdint.hpp>
+#include <boost/uuid/detail/numeric_cast.hpp>
 #include <boost/uuid/uuid.hpp> // for version
 #include <string.h>
 
@@ -39,7 +37,8 @@ namespace detail {
 class md5
 {
 public:
-    typedef unsigned int(digest_type)[4];
+
+    typedef unsigned char digest_type[ 16 ];
 
     md5()
     {
@@ -53,12 +52,12 @@ public:
 
     void process_bytes(void const* buffer, std::size_t byte_count)
     {
-        MD5_Update(&ctx_, buffer, boost::numeric_cast<unsigned long>(byte_count));
+        MD5_Update(&ctx_, buffer, detail::numeric_cast<unsigned long>(byte_count));
     }
 
     void get_digest(digest_type& digest)
     {
-        MD5_Final(reinterpret_cast<unsigned char *>(&digest[0]), &ctx_);
+        MD5_Final(digest, &ctx_);
     }
 
     unsigned char get_version() const
@@ -70,7 +69,7 @@ public:
 private:
 
     /* Any 32-bit or wider unsigned integer data type will do */
-    typedef uint32_t MD5_u32plus;
+    typedef std::uint32_t MD5_u32plus;
 
     typedef struct {
         MD5_u32plus lo, hi;
@@ -117,9 +116,9 @@ private:
      */
     #if defined(__i386__) || defined(__x86_64__) || defined(__vax__)
     #define BOOST_UUID_DETAIL_MD5_SET(n) \
-        (*(MD5_u32plus *)&ptr[(n) * 4])
+        (memcpy(&ctx->block[(n)], &ptr[(n) * 4], sizeof(MD5_u32plus)), (ctx->block[(n)]))
     #define BOOST_UUID_DETAIL_MD5_GET(n) \
-        BOOST_UUID_DETAIL_MD5_SET(n)
+        (ctx->block[(n)])
     #else
     #define BOOST_UUID_DETAIL_MD5_SET(n) \
         (ctx->block[(n)] = \
@@ -339,4 +338,4 @@ private:
 } // uuids
 } // boost
 
-#endif // BOOST_UUID_MD5_HPP
+#endif // BOOST_UUID_DETAIL_MD5_HPP_INCLUDED

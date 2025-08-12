@@ -2,6 +2,10 @@
 
 // Copyright (c) 2012-2015 Barend Gehrels, Amsterdam, the Netherlands.
 
+// This file was modified by Oracle on 2020.
+// Modifications copyright (c) 2020 Oracle and/or its affiliates.
+// Contributed and/or modified by Adam Wulkiewicz, on behalf of Oracle
+
 // Use, modification and distribution is subject to the Boost Software License,
 // Version 1.0. (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -12,7 +16,8 @@
 
 #include <cstddef>
 
-#include <boost/range.hpp>
+#include <boost/range/size.hpp>
+#include <boost/range/value_type.hpp>
 
 #include <boost/geometry/core/assert.hpp>
 #include <boost/geometry/core/coordinate_type.hpp>
@@ -78,11 +83,14 @@ struct buffered_ring_collection : public std::vector<Ring>
 
 
 // Turn off concept checking (for now)
-namespace dispatch
+namespace concepts
 {
-template <typename Geometry, bool IsConst>
-struct check<Geometry, detail::buffer::buffered_ring_collection_tag, IsConst>
+
+template <typename Geometry>
+struct concept_type<Geometry, geometry::detail::buffer::buffered_ring_collection_tag>
 {
+    struct dummy {};
+    using type = dummy;
 };
 
 }
@@ -100,7 +108,7 @@ namespace traits
 template <typename Ring>
 struct tag<geometry::detail::buffer::buffered_ring<Ring> >
 {
-    typedef ring_tag type;
+    using type = ring_tag;
 };
 
 
@@ -121,13 +129,13 @@ struct closure<geometry::detail::buffer::buffered_ring<Ring> >
 template <typename Ring>
 struct point_type<geometry::detail::buffer::buffered_ring_collection<Ring> >
 {
-    typedef typename geometry::point_type<Ring>::type type;
+    using type = geometry::point_type_t<Ring>;
 };
 
 template <typename Ring>
 struct tag<geometry::detail::buffer::buffered_ring_collection<Ring> >
 {
-    typedef geometry::detail::buffer::buffered_ring_collection_tag type;
+    using type = geometry::detail::buffer::buffered_ring_collection_tag;
 };
 
 
@@ -146,7 +154,7 @@ struct ring_type
     detail::buffer::buffered_ring_collection<Ring>
 >
 {
-    typedef Ring type;
+    using type = Ring;
 };
 
 
@@ -169,7 +177,7 @@ struct point_order<detail::buffer::buffered_ring_collection_tag,
 template <>
 struct single_tag_of<detail::buffer::buffered_ring_collection_tag>
 {
-    typedef ring_tag type;
+    using type = ring_tag;
 };
 
 
@@ -261,7 +269,7 @@ template<>
 struct get_ring<detail::buffer::buffered_ring_collection_tag>
 {
     template<typename MultiGeometry>
-    static inline typename ring_type<MultiGeometry>::type const& apply(
+    static inline ring_type_t<MultiGeometry> const& apply(
                 ring_identifier const& id,
                 MultiGeometry const& multi_ring)
     {

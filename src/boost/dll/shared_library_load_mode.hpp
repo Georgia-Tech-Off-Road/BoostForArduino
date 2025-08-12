@@ -1,5 +1,5 @@
 // Copyright 2014 Renato Tegon Forti, Antony Polukhin.
-// Copyright 2015-2016 Antony Polukhin.
+// Copyright Antony Polukhin, 2015-2025.
 //
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt
@@ -8,7 +8,7 @@
 #ifndef BOOST_DLL_SHARED_LIBRARY_MODE_HPP
 #define BOOST_DLL_SHARED_LIBRARY_MODE_HPP
 
-#include <boost/config.hpp>
+#include <boost/dll/config.hpp>
 #include <boost/predef/os.h>
 #include <boost/predef/library/c.h>
 
@@ -207,37 +207,37 @@ enum type {
 
 
 /// Free operators for load_mode::type flag manipulation.
-BOOST_CONSTEXPR inline type operator|(type left, type right) BOOST_NOEXCEPT {
+BOOST_CONSTEXPR inline type operator|(type left, type right) noexcept {
     return static_cast<type>(
         static_cast<unsigned int>(left) | static_cast<unsigned int>(right)
     );
 }
-BOOST_CXX14_CONSTEXPR inline type& operator|=(type& left, type right) BOOST_NOEXCEPT {
+BOOST_CXX14_CONSTEXPR inline type& operator|=(type& left, type right) noexcept {
     left = left | right;
     return left;
 }
 
-BOOST_CONSTEXPR inline type operator&(type left, type right) BOOST_NOEXCEPT {
+BOOST_CONSTEXPR inline type operator&(type left, type right) noexcept {
     return static_cast<type>(
         static_cast<unsigned int>(left) & static_cast<unsigned int>(right)
     );
 }
-BOOST_CXX14_CONSTEXPR inline type& operator&=(type& left, type right) BOOST_NOEXCEPT {
+BOOST_CXX14_CONSTEXPR inline type& operator&=(type& left, type right) noexcept {
     left = left & right;
     return left;
 }
 
-BOOST_CONSTEXPR inline type operator^(type left, type right) BOOST_NOEXCEPT {
+BOOST_CONSTEXPR inline type operator^(type left, type right) noexcept {
     return static_cast<type>(
         static_cast<unsigned int>(left) ^ static_cast<unsigned int>(right)
     );
 }
-BOOST_CXX14_CONSTEXPR inline type& operator^=(type& left, type right) BOOST_NOEXCEPT {
+BOOST_CXX14_CONSTEXPR inline type& operator^=(type& left, type right) noexcept {
     left = left ^ right;
     return left;
 }
 
-BOOST_CONSTEXPR inline type operator~(type left) BOOST_NOEXCEPT {
+BOOST_CONSTEXPR inline type operator~(type left) noexcept {
     return static_cast<type>(
         ~static_cast<unsigned int>(left)
     );

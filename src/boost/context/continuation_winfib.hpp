@@ -87,7 +87,7 @@ struct BOOST_CONTEXT_DECL activation_record {
         if ( BOOST_UNLIKELY( nullptr == fiber) ) {
             DWORD err = ::GetLastError();
             BOOST_ASSERT( ERROR_ALREADY_FIBER == err);
-            fiber = ::GetCurrentFiber(); 
+            fiber = ::GetCurrentFiber();
             BOOST_ASSERT( nullptr != fiber);
             BOOST_ASSERT( reinterpret_cast< LPVOID >( 0x1E00) != fiber);
         }
@@ -97,7 +97,7 @@ struct BOOST_CONTEXT_DECL activation_record {
     activation_record( stack_context sctx_) noexcept :
         sctx{ sctx_ },
         main_ctx{ false } {
-    } 
+    }
 
     virtual ~activation_record() {
         if ( BOOST_UNLIKELY( main_ctx) ) {
@@ -185,7 +185,7 @@ struct BOOST_CONTEXT_DECL activation_record_initializer {
 };
 
 struct forced_unwind {
-    activation_record  *   from{ nullptr };
+    activation_record   *   from{ nullptr };
 
     explicit forced_unwind( activation_record * from_) :
         from{ from_ } {
@@ -224,10 +224,10 @@ public:
         try {
             // invoke context-function
 #if defined(BOOST_NO_CXX17_STD_INVOKE)
-            c = invoke( fn_, std::move( c) );
+            c = boost::context::detail::invoke( fn_, std::move( c) );
 #else
             c = std::invoke( fn_, std::move( c) );
-#endif  
+#endif
         } catch ( forced_unwind const& ex) {
             c = Ctx{ ex.from };
         }
@@ -261,7 +261,7 @@ static activation_record * create_context1( StackAlloc && salloc, Fn && fn) {
 
 template< typename Ctx, typename StackAlloc, typename Fn >
 static activation_record * create_context2( preallocated palloc, StackAlloc && salloc, Fn && fn) {
-    typedef capture_record< Ctx, StackAlloc, Fn >  capture_t; 
+    typedef capture_record< Ctx, StackAlloc, Fn >  capture_t;
 
     BOOST_ASSERT( ( sizeof( capture_t) ) < palloc.size);
     // reserve space for control structure
@@ -334,7 +334,11 @@ public:
         return * this;
     }
 
-    continuation resume() {
+    continuation resume() & {
+        return std::move( * this).resume();
+    }
+
+    continuation resume() && {
 #if defined(BOOST_NO_CXX14_STD_EXCHANGE)
         detail::activation_record * ptr = detail::exchange( ptr_, nullptr)->resume();
 #else
@@ -346,11 +350,16 @@ public:
             ptr = detail::activation_record::current()->ontop( ptr);
             detail::activation_record::current()->ontop = nullptr;
         }
-        return continuation{ ptr };
+        return { ptr };
     }
 
     template< typename Fn >
-    continuation resume_with( Fn && fn) {
+    continuation resume_with( Fn && fn) & {
+        return std::move( * this).resume_with( std::forward< Fn >( fn) );
+    }
+
+    template< typename Fn >
+    continuation resume_with( Fn && fn) && {
 #if defined(BOOST_NO_CXX14_STD_EXCHANGE)
         detail::activation_record * ptr =
             detail::exchange( ptr_, nullptr)->resume_with< continuation >( std::forward< Fn >( fn) );
@@ -364,7 +373,7 @@ public:
             ptr = detail::activation_record::current()->ontop( ptr);
             detail::activation_record::current()->ontop = nullptr;
         }
-        return continuation{ ptr };
+        return { ptr };
     }
 
     explicit operator bool() const noexcept {
@@ -375,29 +384,11 @@ public:
         return nullptr == ptr_ || ptr_->terminated;
     }
 
-    bool operator==( continuation const& other) const noexcept {
-        return ptr_ == other.ptr_;
-    }
-
-    bool operator!=( continuation const& other) const noexcept {
-        return ptr_ != other.ptr_;
-    }
-
     bool operator<( continuation const& other) const noexcept {
         return ptr_ < other.ptr_;
     }
 
-    bool operator>( continuation const& other) const noexcept {
-        return other.ptr_ < ptr_;
-    }
-
-    bool operator<=( continuation const& other) const noexcept {
-        return ! ( * this > other);
-    }
-
-    bool operator>=( continuation const& other) const noexcept {
-        return ! ( * this < other);
-    }
+    #if !defined(BOOST_EMBTC)
 
     template< typename charT, class traitsT >
     friend std::basic_ostream< charT, traitsT > &
@@ -409,10 +400,32 @@ public:
         }
     }
 
+    #else
+
+    template< typename charT, class traitsT >
+    friend std::basic_ostream< charT, traitsT > &
+    operator<<( std::basic_ostream< charT, traitsT > & os, continuation const& other);
+
+    #endif
+
     void swap( continuation & other) noexcept {
         std::swap( ptr_, other.ptr_);
     }
 };
+
+#if defined(BOOST_EMBTC)
+
+    template< typename charT, class traitsT >
+    inline std::basic_ostream< charT, traitsT > &
+    operator<<( std::basic_ostream< charT, traitsT > & os, continuation const& other) {
+        if ( nullptr != other.ptr_) {
+            return os << other.ptr_;
+        } else {
+            return os << "{not-a-context}";
+        }
+    }
+
+#endif
 
 template<
     typename Fn,

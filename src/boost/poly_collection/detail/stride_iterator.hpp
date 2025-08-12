@@ -1,4 +1,4 @@
-/* Copyright 2016 Joaquin M Lopez Munoz.
+/* Copyright 2016-2019 Joaquin M Lopez Munoz.
  * Distributed under the Boost Software License, Version 1.0.
  * (See accompanying file LICENSE_1_0.txt or copy at
  * http://www.boost.org/LICENSE_1_0.txt)
@@ -13,6 +13,8 @@
 #pragma once
 #endif
 
+#include <boost/config.hpp>
+#include <boost/detail/workaround.hpp>
 #include <boost/iterator/iterator_facade.hpp>
 #include <type_traits>
 
@@ -62,15 +64,7 @@ public:
   stride_iterator& operator=(Value* p_)noexcept{p=p_;return *this;}
   operator Value*()const noexcept{return p;}
 
-  template<
-    typename DerivedValue,
-    typename std::enable_if<
-      std::is_base_of<Value,DerivedValue>::value&&
-      (std::is_const<Value>::value||!std::is_const<DerivedValue>::value)
-    >::type* =nullptr
-  >
-  explicit stride_iterator(DerivedValue* x)noexcept:
-    p{x},stride_{sizeof(DerivedValue)}{}
+#include <boost/poly_collection/detail/begin_no_sanitize.hpp>
 
   template<
     typename DerivedValue,
@@ -79,8 +73,11 @@ public:
       (!std::is_const<Value>::value||std::is_const<DerivedValue>::value)
     >::type* =nullptr
   >
+  BOOST_POLY_COLLECTION_NO_SANITIZE
   explicit operator DerivedValue*()const noexcept
   {return static_cast<DerivedValue*>(p);}
+
+#include <boost/poly_collection/detail/end_no_sanitize.hpp>
 
   std::size_t stride()const noexcept{return stride_;}
 
@@ -106,9 +103,10 @@ private:
   void increment()noexcept{p=value_ptr(char_ptr(p)+stride_);}
   void decrement()noexcept{p=value_ptr(char_ptr(p)-stride_);}
   template<typename Integral>
-  void advance(Integral n)noexcept{p=value_ptr(char_ptr(p)+n*stride_);}
+  void advance(Integral n)noexcept
+    {p=value_ptr(char_ptr(p)+n*(std::ptrdiff_t)stride_);}
   std::ptrdiff_t distance_to(const stride_iterator& x)const noexcept
-    {return (char_ptr(x.p)-char_ptr(p))/stride_;}          
+    {return (char_ptr(x.p)-char_ptr(p))/(std::ptrdiff_t)stride_;}          
 
   Value*      p;
   std::size_t stride_;
